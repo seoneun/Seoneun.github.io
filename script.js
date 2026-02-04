@@ -12,7 +12,164 @@ document.addEventListener('DOMContentLoaded', () => {
     initCounterAnimation();
     initSmoothScroll();
     initActiveNavLinks();
+    initInteractiveCanvas();
 });
+
+/* ============================================
+   INTERACTIVE CANVAS (RIPPLE & SPLASH)
+   ============================================ */
+function initInteractiveCanvas() {
+    const canvas = document.getElementById('interactive-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let ripples = [];
+    let particles = [];
+
+    // Colors for splashes (matching theme)
+    const colors = [
+        '#6366f1', // accent-primary
+        '#8b5cf6', // accent-secondary
+        '#a855f7', // accent-tertiary
+        '#06b6d4', // accent-cyan
+        '#ec4899', // accent-pink
+        '#f97316'  // accent-orange
+    ];
+
+    // Resize canvas
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Mouse coordinates
+    let mouse = { x: 0, y: 0 };
+    let lastMouse = { x: 0, y: 0 };
+
+    // Ripple Class
+    class Ripple {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.radius = 0;
+            this.maxRadius = 50;
+            this.speed = 1;
+            this.alpha = 1;
+            this.angle = Math.random() * Math.PI * 2;
+        }
+
+        update() {
+            this.radius += this.speed;
+            this.alpha -= 0.02;
+        }
+
+        draw(ctx) {
+            ctx.save();
+            ctx.globalAlpha = this.alpha * 0.4;
+            ctx.beginPath();
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
+            ctx.lineWidth = 2;
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    // Particle Class (Paint Splash)
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.size = Math.random() * 5 + 2;
+            this.speedX = Math.random() * 6 - 3;
+            this.speedY = Math.random() * 6 - 3;
+            this.gravity = 0.1;
+            this.friction = 0.95;
+            this.life = 1;
+            this.decay = Math.random() * 0.02 + 0.01;
+        }
+
+        update() {
+            this.speedY += this.gravity;
+            this.speedX *= this.friction;
+            this.speedY *= this.friction;
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.life -= this.decay;
+        }
+
+        draw(ctx) {
+            ctx.save();
+            ctx.globalAlpha = this.life;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    // Create ripples on mouse move
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+
+        // Create ripple only if mouse moved enough distance
+        const dx = mouse.x - lastMouse.x;
+        const dy = mouse.y - lastMouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > 5) {
+            ripples.push(new Ripple(mouse.x, mouse.y));
+            lastMouse.x = mouse.x;
+            lastMouse.y = mouse.y;
+        }
+    });
+
+    // Create splash on click
+    window.addEventListener('mousedown', (e) => {
+        const splashCount = 15;
+        for (let i = 0; i < splashCount; i++) {
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            particles.push(new Particle(e.clientX, e.clientY, color));
+        }
+    });
+
+    // Animation Loop
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Update and draw ripples
+        for (let i = 0; i < ripples.length; i++) {
+            ripples[i].update();
+            ripples[i].draw(ctx);
+
+            if (ripples[i].alpha <= 0) {
+                ripples.splice(i, 1);
+                i--;
+            }
+        }
+
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw(ctx);
+
+            if (particles[i].life <= 0) {
+                particles.splice(i, 1);
+                i--;
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+}
 
 /* ============================================
    THEME TOGGLE (DARK/LIGHT MODE)
