@@ -904,25 +904,37 @@ img {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    margin-top: 16px;
 }
 
 .pub-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: 8px;
+    padding: 6px 14px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     border-radius: 50px;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     transition: var(--transition-base);
+    text-decoration: none;
 }
 
 .pub-link:hover {
-    background: rgba(99, 102, 241, 0.2);
+    background: rgba(99, 102, 241, 0.15);
     border-color: var(--accent-primary);
-    color: var(--text-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.pub-link i {
+    font-size: 0.9rem;
+    color: var(--accent-secondary);
+}
+
+.pub-link:hover i {
+    color: var(--accent-primary);
 }
 
 /* ============================================
