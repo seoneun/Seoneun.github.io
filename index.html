@@ -1,4 +1,485 @@
----
-layout: home
-author_profile: true
----
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Seong-Eun Hong - Graphics Researcher at Korea University | Computer Graphics, Motion Synthesis, and AI">
+    <meta name="keywords"
+        content="Graphics, Computer Vision, Research, AI, Deep Learning, Motion Synthesis, Text-to-Motion">
+    <meta name="author" content="Seong-Eun Hong">
+    <title>Seong-Eun Hong | Graphics Researcher</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-logo">
+                <span class="logo-text">Seong-Eun Hong</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#publications" class="nav-link">Publications</a></li>
+                <li><a href="#projects" class="nav-link">Projects</a></li>
+                <li><a href="#awards" class="nav-link">Awards</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-bg">
+            <div class="gradient-sphere sphere-1"></div>
+            <div class="gradient-sphere sphere-2"></div>
+            <div class="gradient-sphere sphere-3"></div>
+            <div class="grid-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-image-container">
+                <div class="hero-image-wrapper">
+                    <img src="image/profile.png" alt="Seong-Eun Hong" class="hero-image">
+                </div>
+                <div class="hero-image-glow"></div>
+            </div>
+            <h1 class="hero-title">
+                <span class="greeting">Hello, I'm</span>
+                <span class="name">Seong-Eun Hong</span>
+            </h1>
+            <p class="hero-subtitle">Graphics Researcher @ Korea University</p>
+            <p class="hero-description">
+                Exploring the intersection of <span class="highlight">Computer Graphics</span>,
+                <span class="highlight">Motion Synthesis</span>, and
+                <span class="highlight">Deep Learning</span>
+            </p>
+            <div class="hero-cta">
+                <a href="#publications" class="btn btn-primary">
+                    <i class="fas fa-file-alt"></i>
+                    View Publications
+                </a>
+                <a href="#contact" class="btn btn-secondary">
+                    <i class="fas fa-envelope"></i>
+                    Get in Touch
+                </a>
+            </div>
+            <div class="hero-scroll">
+                <a href="#about" class="scroll-indicator">
+                    <span>Scroll Down</span>
+                    <i class="fas fa-chevron-down"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section about">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon"><i class="fas fa-user-circle"></i></span>
+                About Me
+            </h2>
+            <div class="about-content">
+                <div class="about-text glass-card">
+                    <p class="about-intro">
+                        I am a <strong>Graphics Researcher</strong> at Korea University, passionate about creating
+                        intelligent motion synthesis systems.
+                    </p>
+                    <p>
+                        My research focuses on developing novel algorithms at the intersection of
+                        computer graphics, natural language processing, and deep learning. I am particularly interested
+                        in
+                        text-to-motion synthesis, virtual agent behavior, and neural animation systems.
+                    </p>
+                    <div class="about-interests">
+                        <h3>Research Interests</h3>
+                        <div class="interest-tags">
+                            <span class="tag">Text-to-Motion</span>
+                            <span class="tag">Motion Synthesis</span>
+                            <span class="tag">Virtual Agents</span>
+                            <span class="tag">Deep Learning</span>
+                            <span class="tag">Computer Graphics</span>
+                            <span class="tag">NLP for Animation</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-number" data-count="4">0</div>
+                        <div class="stat-label">Publications</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                        <div class="stat-number" data-count="3">0</div>
+                        <div class="stat-label">Awards</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                        <div class="stat-number" data-count="5">0</div>
+                        <div class="stat-label">Projects</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Publications Section -->
+    <section id="publications" class="section publications">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon"><i class="fas fa-book-open"></i></span>
+                Publications
+            </h2>
+
+            <!-- Year Separator -->
+            <div class="year-separator">
+                <span>2026</span>
+            </div>
+
+            <div class="publications-list">
+                <!-- Publication 1 - Event-T2M -->
+                <article class="publication-card glass-card">
+                    <div class="pub-thumbnail">
+                        <img src="image/ICLR.png" alt="Event-T2M" class="pub-thumbnail-img">
+                    </div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">Event-T2M: Event-level Conditioning for Complex Text-to-Motion Synthesis
+                        </h3>
+                        <p class="pub-authors">
+                            <strong>Seong-Eun Hong</strong><sup>*</sup>, Jaeyoung Seon<sup>*</sup>, Juyeong Hwang,
+                            JongHwan Shin, and HyeongYeop Kang
+                        </p>
+                        <p class="pub-venue">
+                            <span class="venue-name">ICLR 2026</span>
+                            <span class="pub-type">Conference Paper</span>
+                        </p>
+                        <p class="pub-meta">
+                            <i class="fas fa-map-marker-alt"></i> Rio de Janeiro, Brazil | Apr. 23-27, 2026
+                        </p>
+                        <p class="pub-abstract">
+                            A novel approach for event-level conditioning in text-to-motion synthesis,
+                            enabling complex and nuanced motion generation from text descriptions.
+                        </p>
+                    </div>
+                </article>
+
+                <!-- Publication 2 - ORACLE -->
+                <article class="publication-card glass-card">
+                    <div class="pub-thumbnail">
+                        <img src="image/CVM.png" alt="ORACLE" class="pub-thumbnail-img">
+                    </div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">ORACLE: Orchestrate NPC Daily Activities using Contrastive Learning with
+                            Transformer-CVAE</h3>
+                        <p class="pub-authors">
+                            <strong>Seong-Eun Hong</strong>, Juyeong Hwang, Ryunha Lee, and HyeongYeop Kang
+                        </p>
+                        <p class="pub-venue">
+                            <span class="venue-name">CVM 2026</span>
+                            <span class="pub-type">Conference Paper</span>
+                        </p>
+                        <p class="pub-meta">
+                            <i class="fas fa-map-marker-alt"></i> Seoul, South Korea | Apr. 2026
+                        </p>
+                        <p class="pub-abstract">
+                            A framework for orchestrating NPC daily activities using contrastive learning
+                            combined with Transformer-CVAE architecture for realistic virtual agent behaviors.
+                        </p>
+                    </div>
+                </article>
+
+                <!-- Publication 3 - BiPO -->
+                <article class="publication-card glass-card">
+                    <div class="pub-thumbnail">
+                        <img src="image/WACV.png" alt="BiPO" class="pub-thumbnail-img">
+                    </div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">BiPO: Bidirectional Partial Occlusion Network for Text-to-Motion Synthesis
+                        </h3>
+                        <p class="pub-authors">
+                            <strong>Seong-Eun Hong</strong>, Soobin Lim, Juyeong Hwang, Minwook Chang, and HyeongYeop
+                            Kang
+                        </p>
+                        <p class="pub-venue">
+                            <span class="venue-name">WACV 2026</span>
+                            <span class="pub-type oral">Oral Presentation</span>
+                        </p>
+                        <p class="pub-meta">
+                            <i class="fas fa-map-marker-alt"></i> Tucson, Arizona, USA | Mar. 6-10, 2026
+                        </p>
+                        <p class="pub-abstract">
+                            A bidirectional partial occlusion network designed for improved text-to-motion synthesis,
+                            achieving state-of-the-art performance and selected for oral presentation.
+                        </p>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Year Separator -->
+            <div class="year-separator">
+                <span>2025</span>
+            </div>
+
+            <div class="publications-list">
+                <!-- Publication 4 - Virtual Agent Head Rotation -->
+                <article class="publication-card glass-card">
+                    <div class="pub-thumbnail">
+                        <img src="image/Siggraphasia.png" alt="Virtual Agent Head Rotation" class="pub-thumbnail-img">
+                    </div>
+                    <div class="pub-content">
+                        <h3 class="pub-title">How Does a Virtual Agent Decide Where to Look? Symbolic Cognitive
+                            Reasoning for Embodied Head Rotation</h3>
+                        <p class="pub-authors">
+                            Juyeong Hwang<sup>*</sup>, <strong>Seong-Eun Hong</strong><sup>*</sup>, Jaeyoung Seon, and
+                            HyeongYeop Kang
+                        </p>
+                        <p class="pub-venue">
+                            <span class="venue-name">SIGGRAPH Asia 2025</span>
+                            <span class="pub-type">Conference Paper</span>
+                        </p>
+                        <p class="pub-meta">
+                            <i class="fas fa-map-marker-alt"></i> Hong Kong | Dec. 15-18, 2025
+                        </p>
+                        <p class="pub-abstract">
+                            A novel framework for symbolic cognitive reasoning enabling virtual agents to make
+                            natural head rotation decisions in embodied environments.
+                        </p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section projects">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon"><i class="fas fa-rocket"></i></span>
+                Projects
+            </h2>
+            <div class="projects-grid">
+                <!-- Project 1 -->
+                <article class="project-card glass-card">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-btn"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Text-to-Motion Synthesis</h3>
+                        <p class="project-description">
+                            Deep learning framework for generating realistic human motions from natural language
+                            descriptions.
+                        </p>
+                        <div class="project-tech">
+                            <span>PyTorch</span>
+                            <span>Transformer</span>
+                            <span>Python</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Project 2 -->
+                <article class="project-card glass-card">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-btn"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Virtual Agent Behavior</h3>
+                        <p class="project-description">
+                            Intelligent NPC activity orchestration using contrastive learning and generative models.
+                        </p>
+                        <div class="project-tech">
+                            <span>CVAE</span>
+                            <span>Contrastive Learning</span>
+                            <span>Unity</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Project 3 -->
+                <article class="project-card glass-card">
+                    <div class="project-image">
+                        <div class="project-image-placeholder">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="project-overlay">
+                            <a href="#" class="project-btn"><i class="fas fa-external-link-alt"></i></a>
+                        </div>
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Cognitive Head Movement</h3>
+                        <p class="project-description">
+                            Symbolic reasoning framework for realistic virtual agent gaze and head rotation control.
+                        </p>
+                        <div class="project-tech">
+                            <span>Symbolic AI</span>
+                            <span>Graphics</span>
+                            <span>Python</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Awards Section -->
+    <section id="awards" class="section awards">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon"><i class="fas fa-award"></i></span>
+                Awards & Honors
+            </h2>
+            <div class="awards-timeline">
+                <div class="timeline-item glass-card">
+                    <div class="timeline-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-year">2026</span>
+                        <h3 class="award-title">WACV 2026 Oral Presentation</h3>
+                        <p class="award-org">IEEE/CVF Winter Conference on Applications of Computer Vision</p>
+                        <p class="award-description">
+                            Selected for oral presentation for the BiPO paper, recognizing outstanding contribution
+                            to text-to-motion synthesis research.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-item glass-card">
+                    <div class="timeline-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-year">2025</span>
+                        <h3 class="award-title">SIGGRAPH Asia Publication</h3>
+                        <p class="award-org">ACM SIGGRAPH Asia 2025</p>
+                        <p class="award-description">
+                            Research on virtual agent cognitive reasoning accepted at the prestigious SIGGRAPH Asia
+                            conference.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="timeline-item glass-card">
+                    <div class="timeline-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-year">2025</span>
+                        <h3 class="award-title">Research Excellence</h3>
+                        <p class="award-org">Korea University</p>
+                        <p class="award-description">
+                            Recognition for outstanding research contributions in computer graphics and motion
+                            synthesis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="title-icon"><i class="fas fa-paper-plane"></i></span>
+                Get in Touch
+            </h2>
+            <div class="contact-content">
+                <div class="contact-info glass-card">
+                    <p class="contact-intro">
+                        I'm always open to discussing new research collaborations,
+                        interesting projects, or opportunities in graphics and motion synthesis.
+                    </p>
+                    <div class="contact-items">
+                        <a href="mailto:seong_eun@korea.ac.kr" class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>seong_eun@korea.ac.kr</span>
+                        </a>
+                        <a href="https://scholar.google.com/citations?user=yLbYxuYAAAAJ&hl=ko" target="_blank"
+                            class="contact-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Google Scholar</span>
+                        </a>
+                        <a href="https://github.com/seoneun" target="_blank" class="contact-item">
+                            <i class="fab fa-github"></i>
+                            <span>GitHub</span>
+                        </a>
+                        <a href="https://www.linkedin.com/in/seong-eun-hong-538098172/" target="_blank"
+                            class="contact-item">
+                            <i class="fab fa-linkedin"></i>
+                            <span>LinkedIn</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="contact-social">
+                    <a href="mailto:seong_eun@korea.ac.kr" class="social-btn" aria-label="Email">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="https://scholar.google.com/citations?user=yLbYxuYAAAAJ&hl=ko" target="_blank"
+                        class="social-btn" aria-label="Google Scholar">
+                        <i class="fas fa-graduation-cap"></i>
+                    </a>
+                    <a href="https://github.com/seoneun" target="_blank" class="social-btn" aria-label="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/seong-eun-hong-538098172/" target="_blank" class="social-btn"
+                        aria-label="LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    © 2025 Seong-Eun Hong. All rights reserved.
+                </p>
+                <p class="footer-credit">
+                    Designed with <i class="fas fa-heart"></i> for beautiful research
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
