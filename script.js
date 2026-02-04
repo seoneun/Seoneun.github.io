@@ -139,6 +139,38 @@ function initInteractiveCanvas() {
         }
     });
 
+    // PROFILE EXPLOSION EFFECT
+    const profileImage = document.querySelector('.hero-image-wrapper');
+    if (profileImage) {
+        profileImage.style.cursor = 'pointer'; // Make it look clickable
+        profileImage.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent default splash, run super splash instead (or both)
+
+            // 1. Trigger Screen Shake
+            document.body.classList.add('shake-active');
+            setTimeout(() => {
+                document.body.classList.remove('shake-active');
+            }, 500);
+
+            // 2. Trigger Massive Explosion (200 particles)
+            const rect = profileImage.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 200; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const p = new Particle(centerX, centerY, color);
+
+                // Boost velocity for explosion
+                p.speedX *= 3;
+                p.speedY *= 3;
+                p.size *= 1.5; // Bigger particles
+
+                particles.push(p);
+            }
+        });
+    }
+
     // Animation Loop
     function animate() {
         ctx.clearRect(0, 0, width, height);
