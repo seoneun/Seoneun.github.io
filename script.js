@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================
-   INTERACTIVE CANVAS (AGENTS + RIPPLE + SPLASH)
+   INTERACTIVE CANVAS (AGENTS + RIPPLE + SPLASH + FOOD)
    ============================================ */
 function initInteractiveCanvas() {
     const canvas = document.getElementById('interactive-canvas');
@@ -29,17 +29,24 @@ function initInteractiveCanvas() {
     const agents = [];
     let ripples = [];
     let particles = [];
+    let foods = []; // Clouds/Stars
 
     // Configuration
     const agentCount = 8;
     const gravity = 0.5;
-    const floorHeight = 50; // Distance from bottom of HERO section (not window)
+    const floorHeight = 50;
 
     // Mouse Interaction
     let mouse = { x: 0, y: 0 };
     let lastMouse = { x: 0, y: 0 };
     let isDragging = false;
-    let draggedAgent = null;
+    let draggedEntity = null; // Can be Agent or Food
+
+    // Theme (tracked manually for canvas updates)
+    let currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+    // Image for Masking
+    const profileImage = document.querySelector('.hero-image-wrapper');
 
     // Colors
     const colors = [
@@ -60,19 +67,11 @@ function initInteractiveCanvas() {
 
     class Ripple {
         constructor(x, y) {
-            this.x = x;
-            this.y = y; // Canvas coordinates (fixed)
-            this.radius = 0;
-            this.maxRadius = 50;
-            this.speed = 1;
-            this.alpha = 1;
+            this.x = x; this.y = y;
+            this.radius = 0; this.maxRadius = 50;
+            this.speed = 1; this.alpha = 1;
         }
-
-        update() {
-            this.radius += this.speed;
-            this.alpha -= 0.02;
-        }
-
+        update() { this.radius += this.speed; this.alpha -= 0.02; }
         draw(ctx) {
             ctx.save();
             ctx.globalAlpha = this.alpha * 0.4;
@@ -87,31 +86,21 @@ function initInteractiveCanvas() {
 
     class Particle {
         constructor(x, y, color, isBig = false) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-            // Bigger particles for profile explosion
+            this.x = x; this.y = y; this.color = color;
             const sizeMult = isBig ? 2.5 : 1;
             const speedMult = isBig ? 3.0 : 1;
-
             this.size = (Math.random() * 5 + 2) * sizeMult;
             this.speedX = (Math.random() * 6 - 3) * speedMult;
             this.speedY = (Math.random() * 6 - 3) * speedMult;
-            this.gravity = 0.1;
-            this.friction = 0.95;
-            this.life = 1;
-            this.decay = Math.random() * 0.02 + 0.01;
+            this.gravity = 0.1; this.friction = 0.95;
+            this.life = 1; this.decay = Math.random() * 0.02 + 0.01;
         }
-
         update() {
             this.speedY += this.gravity;
-            this.speedX *= this.friction;
-            this.speedY *= this.friction;
-            this.x += this.speedX;
-            this.y += this.speedY;
+            this.speedX *= this.friction; this.speedY *= this.friction;
+            this.x += this.speedX; this.y += this.speedY;
             this.life -= this.decay;
         }
-
         draw(ctx) {
             ctx.save();
             ctx.globalAlpha = this.life;
@@ -123,67 +112,168 @@ function initInteractiveCanvas() {
         }
     }
 
+    class Food {
+        constructor(type) {
+            this.type = type; // 'CLOUD', 'STAR', 'MOON'
+            this.x = Math.random() * (window.innerWidth - 100) + 50;
+            this.y = Math.random() * (window.innerHeight / 2); // Top half
+            this.radius = 20;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.isBeingEaten = false;
+        }
+
+        update() {
+            if (this !== draggedEntity) {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce bounds (top half of hero mostly)
+                if (this.x < 0 || this.x > window.innerWidth) this.vx *= -1;
+                if (this.y < 0 || this.y > window.innerHeight - 100) this.vy *= -1;
+            } else {
+                // Dragged
+                const worldMouseY = mouse.y + window.scrollY;
+                this.x += (mouse.x - this.x) * 0.3;
+                this.y += (worldMouseY - this.y) * 0.3;
+            }
+        }
+
+        draw(ctx, scrollY) {
+            if (this.isBeingEaten) return;
+
+            const screenY = this.y - scrollY;
+            if (screenY < -100 || screenY > height + 100) return;
+
+            ctx.save();
+            ctx.translate(this.x, screenY);
+
+            if (this.type === 'CLOUD') {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.arc(-15, 5, 15, 0, Math.PI * 2);
+                ctx.arc(15, 5, 15, 0, Math.PI * 2);
+                ctx.arc(8, -10, 18, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (this.type === 'STAR') {
+                ctx.fillStyle = '#fbbf24'; // amber-400
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#fbbf24';
+                this.drawStar(ctx, 0, 0, 5, 20, 10);
+            } else if (this.type === 'MOON') {
+                ctx.fillStyle = '#fef3c7'; // amber-100
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#fef3c7';
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 1.3, 5.2, false);
+                ctx.bezierCurveTo(-5, 0, -5, 15, 0, 15);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
     class Agent {
         constructor() {
             this.radius = 15;
             this.color = colors[Math.floor(Math.random() * colors.length)];
-
-            // World Position (Relative to top of document/hero)
-            // Initial Y is grounded relative to window height to start
             this.y = window.innerHeight - floorHeight - this.radius;
             this.x = Math.random() * window.innerWidth;
-
             this.vx = (Math.random() - 0.5) * 2;
             this.vy = 0;
-
             this.state = 'WALK';
 
             this.walkCycle = 0;
             this.struggleCycle = 0;
             this.landTimer = 0;
             this.recoverTimer = 0;
-            this.glowTimer = 0; // For profile click effect
 
-            this.scaleY = 1;
-            this.scaleX = 1;
+            this.smileTimer = 0; // For profile click
+            this.jumpTimer = 0; // For eating food
+
+            this.scaleY = 1; this.scaleX = 1;
         }
 
         update() {
-            // Glow decay
-            if (this.glowTimer > 0) this.glowTimer--;
+            if (this.smileTimer > 0) {
+                this.smileTimer--;
+            }
 
-            // Physics & State
+            // Logic to eat food
+            if (this.state === 'WALK' || this.state === 'JUMP') {
+                for (let i = 0; i < foods.length; i++) {
+                    const food = foods[i];
+                    if (draggedEntity === food) { // Check drag distance
+                        const dx = this.x - food.x;
+                        const dy = this.y - food.y;
+                        if (Math.sqrt(dx * dx + dy * dy) < 50) {
+                            // EAT!
+                            foods.splice(i, 1);
+                            draggedEntity = null; // Release drag
+                            isDragging = false;
+                            this.jump();
+                            break;
+                        }
+                    }
+                }
+            }
+
             switch (this.state) {
                 case 'WALK':
                     this.x += this.vx;
                     this.walkCycle += 0.2;
                     if (this.x < 0 || this.x > window.innerWidth) this.vx *= -1;
-
-                    // Keep on floor (hero bottom)
                     this.y = window.innerHeight - floorHeight - this.radius;
                     break;
 
-                case 'DRAGGED':
-                    // Map mouse (screen) to world y
-                    // Mouse Y is screen relative. Agent Y is world relative.
-                    // World Mouse Y = mouse.y + window.scrollY
-                    const worldMouseY = mouse.y + window.scrollY;
+                case 'JUMP':
+                    this.vy += gravity;
+                    this.y += this.vy;
+                    this.x += this.vx;
+                    // Land logic
+                    if (this.y + this.radius >= window.innerHeight - floorHeight) {
+                        this.y = window.innerHeight - floorHeight - this.radius;
+                        this.state = 'WALK';
+                        this.vy = 0;
+                    }
+                    break;
 
+                case 'DRAGGED':
+                    const worldMouseY = mouse.y + window.scrollY;
                     this.x += (mouse.x - this.x) * 0.2;
                     this.y += (worldMouseY - this.y) * 0.2;
-
-                    this.vx = mouse.x - this.x;
-                    this.vy = worldMouseY - this.y;
+                    this.vx = mouse.x - this.x; this.vy = worldMouseY - this.y;
                     this.struggleCycle += 0.8;
                     break;
 
                 case 'FALL':
                     this.vy += gravity;
-                    this.x += this.vx;
-                    this.y += this.vy;
-                    this.vx *= 0.99;
-
-                    // Floor check
+                    this.x += this.vx; this.y += this.vy; this.vx *= 0.99;
                     if (this.y + this.radius >= window.innerHeight - floorHeight) {
                         this.y = window.innerHeight - floorHeight - this.radius;
                         this.state = 'LAND';
@@ -213,133 +303,154 @@ function initInteractiveCanvas() {
             }
         }
 
-        draw(ctx, scrollY) {
-            // Screen Position = World Y - Scroll Y
-            const screenY = this.y - scrollY;
+        jump() {
+            this.state = 'JUMP';
+            this.vy = -12; // Big jump
+            this.smileTimer = 60; // Smile while jumping
+        }
 
-            // Simple culling
+        draw(ctx, scrollY) {
+            const screenY = this.y - scrollY;
             if (screenY < -50 || screenY > height + 50) return;
 
             ctx.save();
             ctx.translate(this.x, screenY);
-
-            // GLOW EFFECT
-            if (this.glowTimer > 0) {
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = '#ffffff';
-            }
-
             ctx.scale(this.scaleX, this.scaleY);
 
             // Legs
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
-
             if (this.state === 'WALK') {
-                const legOffset = Math.sin(this.walkCycle) * 5;
-                this.drawLeg(ctx, -5, 5, -5, 15 + legOffset);
-                this.drawLeg(ctx, 5, 5, 5, 15 - legOffset);
-            } else if (this.state === 'DRAGGED') {
-                const k = Math.sin(this.struggleCycle) * 8;
-                this.drawLeg(ctx, -5, 5, -8 - k, 18);
-                this.drawLeg(ctx, 5, 5, 8 + k, 18);
+                const off = Math.sin(this.walkCycle) * 5;
+                this.drawLeg(ctx, -5, 5, -5, 15 + off);
+                this.drawLeg(ctx, 5, 5, 5, 15 - off);
+            } else if (this.state === 'DRAGGED' || this.state === 'JUMP') {
+                this.drawLeg(ctx, -5, 5, -8, 18);
+                this.drawLeg(ctx, 5, 5, 8, 18); // Spread legs for jump
             } else {
                 this.drawLeg(ctx, -5, 5, -5, 15);
                 this.drawLeg(ctx, 5, 5, 5, 15);
             }
 
             // Body
-            ctx.fillStyle = this.glowTimer > 0 ? '#fff' : this.color;
+            ctx.fillStyle = this.color;
             ctx.beginPath();
             ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Eyes
-            ctx.shadowBlur = 0; // Reset shadow for eyes
-            ctx.fillStyle = (this.glowTimer > 0) ? '#000' : '#fff'; // Invert eye color if glowing
+            // Face
+            ctx.fillStyle = '#fff';
 
-            const eyeFace = (this.state === 'DRAGGED' || this.state === 'FALL' || this.glowTimer > 0)
-                ? 'SURPRISED' : (this.state === 'LAND' ? 'DIZZY' : 'NORMAL');
-
-            if (eyeFace === 'SURPRISED') {
-                ctx.beginPath();
-                ctx.arc(-4, -2, 4, 0, Math.PI * 2);
-                ctx.arc(4, -2, 4, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (eyeFace === 'DIZZY') {
-                ctx.strokeStyle = '#fff';
+            // Smile Logic
+            if (this.smileTimer > 0) {
+                // ^ ^ Eyes
                 ctx.lineWidth = 2;
-                this.drawX(ctx, -6, -4);
-                this.drawX(ctx, 2, -4);
+                ctx.strokeStyle = '#fff'; // ensure white smile
+                ctx.beginPath(); ctx.moveTo(-7, -4); ctx.lineTo(-4, -7); ctx.lineTo(-1, -4); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(1, -4); ctx.lineTo(4, -7); ctx.lineTo(7, -4); ctx.stroke();
+                // Smile
+                ctx.beginPath(); ctx.arc(0, 2, 5, 0, Math.PI, false); ctx.stroke();
+            } else if (this.state === 'LAND') {
+                // X X
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                this.drawX(ctx, -6, -4); this.drawX(ctx, 2, -4);
+            } else if (this.state === 'DRAGGED' || this.state === 'FALL') {
+                // O O
+                ctx.beginPath(); ctx.arc(-4, -2, 4, 0, Math.PI * 2);
+                ctx.arc(4, -2, 4, 0, Math.PI * 2); ctx.fill();
             } else {
+                // . .
                 const off = this.vx > 0 ? 3 : -3;
-                ctx.beginPath();
-                ctx.arc(-4 + off, -2, 2, 0, Math.PI * 2);
-                ctx.arc(4 + off, -2, 2, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(-4 + off, -2, 2, 0, Math.PI * 2);
+                ctx.arc(4 + off, -2, 2, 0, Math.PI * 2); ctx.fill();
             }
 
             ctx.restore();
         }
 
-        drawLeg(ctx, x1, y1, x2, y2) {
-            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        }
+        drawLeg(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+        drawX(ctx, x, y) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 4, y + 4); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x + 4, y); ctx.lineTo(x, y + 4); ctx.stroke(); }
+    }
 
-        drawX(ctx, x, y) {
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 4, y + 4); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(x + 4, y); ctx.lineTo(x, y + 4); ctx.stroke();
+    // Init Logic
+    function spawnFood() {
+        foods = [];
+        const theme = document.documentElement.getAttribute('data-theme');
+        const count = 6;
+        for (let i = 0; i < count; i++) {
+            if (theme === 'light') {
+                foods.push(new Food('CLOUD'));
+            } else {
+                foods.push(new Food(Math.random() > 0.3 ? 'STAR' : 'MOON'));
+            }
         }
     }
 
-    // Initialize Agents
-    for (let i = 0; i < agentCount; i++) {
-        agents.push(new Agent());
+    // Listen for theme changes logic (MutationObserver or simple click capture)
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            // Wait slightly for DOM to update
+            setTimeout(spawnFood, 50);
+        });
     }
 
-    // ==========================================
-    // EVENT LISTENERS
-    // ==========================================
+    for (let i = 0; i < agentCount; i++) { agents.push(new Agent()); }
+    spawnFood(); // Initial spawn
 
+    // Events
     window.addEventListener('mousemove', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-
-        // Ripples
-        const dx = mouse.x - lastMouse.x;
-        const dy = mouse.y - lastMouse.y;
+        mouse.x = e.clientX; mouse.y = e.clientY;
+        const dx = mouse.x - lastMouse.x; const dy = mouse.y - lastMouse.y;
         if (Math.sqrt(dx * dx + dy * dy) > 5) {
             ripples.push(new Ripple(mouse.x, mouse.y));
-            lastMouse.x = mouse.x;
-            lastMouse.y = mouse.y;
+            lastMouse.x = mouse.x; lastMouse.y = mouse.y;
         }
     });
 
     window.addEventListener('mousedown', (e) => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
+        mouse.x = e.clientX; mouse.y = e.clientY;
         const scrollY = window.scrollY;
 
-        // 1. Check Agent Drag
-        let hitAgent = false;
-        for (let agent of agents) {
-            // Agent Screen Pos
-            const screenY = agent.y - scrollY;
-            const dx = mouse.x - agent.x;
-            const dy = mouse.y - screenY;
+        let hit = false;
 
-            if (Math.sqrt(dx * dx + dy * dy) < agent.radius * 2.5) {
+        // 1. Check Foods (can be dragged)
+        // Foods use screen/world hybrid logic? 
+        // Our foods move in world space (x, y) but rendered relative to scroll? 
+        // Let's assume Foods are floating in SKY, so they move with scroll or fixed? 
+        // Plan: Foods are world objects too (like agents).
+
+        for (let food of foods) {
+            const screenY = food.y - scrollY;
+            const dx = mouse.x - food.x;
+            const dy = mouse.y - screenY;
+            if (Math.sqrt(dx * dx + dy * dy) < 40) { // Larger hitbox
                 isDragging = true;
-                draggedAgent = agent;
-                agent.state = 'DRAGGED';
-                hitAgent = true;
+                draggedEntity = food;
+                hit = true;
                 break;
             }
         }
 
-        // 2. If no agent hit, Splash!
-        if (!hitAgent) {
+        // 2. Check Agents
+        if (!hit) {
+            for (let agent of agents) {
+                const screenY = agent.y - scrollY;
+                const dx = mouse.x - agent.x;
+                const dy = mouse.y - screenY;
+                if (Math.sqrt(dx * dx + dy * dy) < agent.radius * 2.5) {
+                    isDragging = true;
+                    draggedEntity = agent;
+                    agent.state = 'DRAGGED';
+                    hit = true;
+                    break;
+                }
+            }
+        }
+
+        // 3. Splash
+        if (!hit) {
             for (let i = 0; i < 15; i++) {
                 const c = colors[Math.floor(Math.random() * colors.length)];
                 particles.push(new Particle(mouse.x, mouse.y, c));
@@ -348,86 +459,94 @@ function initInteractiveCanvas() {
     });
 
     window.addEventListener('mouseup', () => {
-        if (isDragging && draggedAgent) {
-            draggedAgent.state = 'FALL';
-            draggedAgent = null;
+        if (isDragging && draggedEntity) {
+            if (draggedEntity instanceof Agent) {
+                draggedEntity.state = 'FALL';
+            }
+            draggedEntity = null;
             isDragging = false;
         }
     });
 
-    // Profile Interaction
-    const profileImage = document.querySelector('.hero-image-wrapper');
     if (profileImage) {
         profileImage.style.cursor = 'pointer';
         profileImage.addEventListener('click', (e) => {
             e.stopPropagation();
-
-            // Big Splash
             const rect = profileImage.getBoundingClientRect();
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
-
             for (let i = 0; i < 200; i++) {
                 const c = colors[Math.floor(Math.random() * colors.length)];
-                particles.push(new Particle(cx, cy, c, true)); // isBig = true
+                particles.push(new Particle(cx, cy, c, true));
             }
-
-            // Agents Glow Reaction
-            agents.forEach(agent => agent.glowTimer = 60); // 1 second glow
+            // Smile reaction
+            agents.forEach(a => a.smileTimer = 90);
         });
     }
 
-
-    // ==========================================
-    // ANIMATION LOOP
-    // ==========================================
+    // Loop
     function animate() {
         ctx.clearRect(0, 0, width, height);
         const scrollY = window.scrollY;
 
-        // 1. Ripples
+        // Ripples
         for (let i = 0; i < ripples.length; i++) {
-            ripples[i].update();
-            ripples[i].draw(ctx);
+            ripples[i].update(); ripples[i].draw(ctx);
             if (ripples[i].alpha <= 0) { ripples.splice(i, 1); i--; }
         }
 
-        // 2. Agents
-        // Update pointer cursor based on hover
-        let hovering = false;
-        if (isDragging) {
-            canvas.style.cursor = 'grabbing';
-            canvas.style.pointerEvents = 'auto';
-        } else {
-            for (let agent of agents) {
-                // Check hover on SCREEN position
-                const screenY = agent.y - scrollY;
-                const dx = mouse.x - agent.x;
-                const dy = mouse.y - screenY;
-                if (Math.sqrt(dx * dx + dy * dy) < agent.radius * 2) {
-                    hovering = true;
-                    break;
-                }
-            }
-            canvas.style.cursor = hovering ? 'grab' : 'default';
-            canvas.style.pointerEvents = hovering ? 'auto' : 'none';
+        // Foods
+        for (let i = 0; i < foods.length; i++) {
+            foods[i].update();
+            foods[i].draw(ctx, scrollY);
         }
 
+        // Agents
         for (let agent of agents) {
             agent.update();
             agent.draw(ctx, scrollY);
         }
 
-        // 3. Particles
+        // Particles
         for (let i = 0; i < particles.length; i++) {
-            particles[i].update();
-            particles[i].draw(ctx);
+            particles[i].update(); particles[i].draw(ctx);
             if (particles[i].life <= 0) { particles.splice(i, 1); i--; }
+        }
+
+        // MASKING: Clear the profile image area so paint falls *behind* it/is erased
+        if (profileImage) {
+            const rect = profileImage.getBoundingClientRect();
+            // Create a hole
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            // Circle mask matching CSS border-radius 50%
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const radius = rect.width / 2; // Assuming square/circle
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Cursor logic
+        let hovering = false;
+        if (isDragging) {
+            canvas.style.cursor = 'grabbing';
+            canvas.style.pointerEvents = 'auto';
+        } else {
+            // Check agents or food
+            for (let e of [...agents, ...foods]) {
+                const screenY = e.y - scrollY;
+                const dist = Math.sqrt((mouse.x - e.x) ** 2 + (mouse.y - screenY) ** 2);
+                if (dist < 30) { hovering = true; break; }
+            }
+            canvas.style.cursor = hovering ? 'grab' : 'default';
+            canvas.style.pointerEvents = hovering ? 'auto' : 'none';
         }
 
         requestAnimationFrame(animate);
     }
-
     animate();
 }
 
