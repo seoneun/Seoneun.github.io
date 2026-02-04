@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================
-   INTERACTIVE CANVAS (RIPPLE & SPLASH)
+   INTERACTIVE CANVAS (CROWD AGENTS)
    ============================================ */
 function initInteractiveCanvas() {
     const canvas = document.getElementById('interactive-canvas');
@@ -24,20 +24,24 @@ function initInteractiveCanvas() {
 
     const ctx = canvas.getContext('2d');
     let width, height;
-    let ripples = [];
-    let particles = [];
 
-    // Colors for splashes (matching theme)
+    // Agent System Variables
+    const agents = [];
+    const agentCount = 8;
+    const gravity = 0.5;
+    const floorHeight = 50; // Distance from bottom
+
+    // Mouse Interaction
+    let mouse = { x: 0, y: 0 };
+    let isDragging = false;
+    let draggedAgent = null;
+
+    // Colors matching theme
     const colors = [
-        '#6366f1', // accent-primary
-        '#8b5cf6', // accent-secondary
-        '#a855f7', // accent-tertiary
-        '#06b6d4', // accent-cyan
-        '#ec4899', // accent-pink
-        '#f97316'  // accent-orange
+        '#6366f1', '#8b5cf6', '#a855f7',
+        '#06b6d4', '#ec4899', '#f97316'
     ];
 
-    // Resize canvas
     function resize() {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
@@ -45,156 +49,266 @@ function initInteractiveCanvas() {
     window.addEventListener('resize', resize);
     resize();
 
-    // Mouse coordinates
-    let mouse = { x: 0, y: 0 };
-    let lastMouse = { x: 0, y: 0 };
+    // AGENT CLASS
+    class Agent {
+        constructor() {
+            this.radius = 15;
+            this.color = colors[Math.floor(Math.random() * colors.length)];
 
-    // Ripple Class
-    class Ripple {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.radius = 0;
-            this.maxRadius = 50;
-            this.speed = 1;
-            this.alpha = 1;
-            this.angle = Math.random() * Math.PI * 2;
+            // Position (start on floor)
+            this.y = height - floorHeight - this.radius;
+            this.x = Math.random() * width;
+
+            // Physics
+            this.vx = (Math.random() - 0.5) * 2; // Walking speed
+            this.vy = 0;
+
+            // State: 'WALK', 'DRAGGED', 'FALL', 'LAND', 'RECOVER'
+            this.state = 'WALK';
+
+            // Animation properties
+            this.walkCycle = 0;
+            this.struggleCycle = 0;
+            this.landTimer = 0;
+            this.recoverTimer = 0;
+            this.scaleY = 1; // For squash/stretch
+            this.scaleX = 1;
         }
 
         update() {
-            this.radius += this.speed;
-            this.alpha -= 0.02;
+            // State Machine
+            switch (this.state) {
+                case 'WALK':
+                    this.x += this.vx;
+                    this.walkCycle += 0.2;
+
+                    // Bounce off walls
+                    if (this.x < 0 || this.x > width) {
+                        this.vx *= -1;
+                    }
+
+                    // Stay on floor
+                    this.y = height - floorHeight - this.radius;
+                    break;
+
+                case 'DRAGGED':
+                    // Follow mouse with lerp for smoothness
+                    this.x += (mouse.x - this.x) * 0.2;
+                    this.y += (mouse.y - this.y) * 0.2;
+
+                    this.vx = mouse.x - this.x; // Track velocity for throw
+                    this.vy = mouse.y - this.y;
+
+                    this.struggleCycle += 0.8; // Fast struggle
+                    break;
+
+                case 'FALL':
+                    this.vy += gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    // Air resistance / friction
+                    this.vx *= 0.99;
+
+                    // Hit floor
+                    if (this.y + this.radius >= height - floorHeight) {
+                        this.y = height - floorHeight - this.radius;
+                        this.state = 'LAND';
+                        this.landTimer = 20; // Frames to stay squashed
+                        this.vy = 0;
+                        this.vx = 0;
+                        // Impact squash
+                        this.scaleY = 0.6;
+                        this.scaleX = 1.4;
+                    }
+                    break;
+
+                case 'LAND':
+                    // Butt bump animation (butt hurting)
+                    this.landTimer--;
+
+                    // Elastic recovery
+                    this.scaleY += (1 - this.scaleY) * 0.1;
+                    this.scaleX += (1 - this.scaleX) * 0.1;
+
+                    if (this.landTimer <= 0) {
+                        this.state = 'RECOVER';
+                        this.recoverTimer = 60; // 1 second to stand up
+                    }
+                    break;
+
+                case 'RECOVER':
+                    this.recoverTimer--;
+                    // Shake head / dust off?
+                    if (this.recoverTimer <= 0) {
+                        this.state = 'WALK';
+                        // Pick random direction
+                        this.vx = (Math.random() - 0.5) * 2;
+                    }
+                    break;
+            }
         }
 
         draw(ctx) {
             ctx.save();
-            ctx.globalAlpha = this.alpha * 0.4;
-            ctx.beginPath();
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
-            ctx.lineWidth = 2;
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-        }
-    }
+            ctx.translate(this.x, this.y);
+            ctx.scale(this.scaleX, this.scaleY);
 
-    // Particle Class (Paint Splash)
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x;
-            this.y = y;
-            this.color = color;
-            this.size = Math.random() * 5 + 2;
-            this.speedX = Math.random() * 6 - 3;
-            this.speedY = Math.random() * 6 - 3;
-            this.gravity = 0.1;
-            this.friction = 0.95;
-            this.life = 1;
-            this.decay = Math.random() * 0.02 + 0.01;
-        }
+            // Draw Legs
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
 
-        update() {
-            this.speedY += this.gravity;
-            this.speedX *= this.friction;
-            this.speedY *= this.friction;
-            this.x += this.speedX;
-            this.y += this.speedY;
-            this.life -= this.decay;
-        }
+            if (this.state === 'WALK') {
+                const legOffset = Math.sin(this.walkCycle) * 5;
+                // Leg 1
+                ctx.beginPath();
+                ctx.moveTo(-5, 5);
+                ctx.lineTo(-5, 15 + legOffset);
+                ctx.stroke();
+                // Leg 2
+                ctx.beginPath();
+                ctx.moveTo(5, 5);
+                ctx.lineTo(5, 15 - legOffset);
+                ctx.stroke();
+            } else if (this.state === 'DRAGGED') {
+                // Struggling legs
+                const legKicking = Math.sin(this.struggleCycle) * 8;
+                ctx.beginPath();
+                ctx.moveTo(-5, 5);
+                ctx.lineTo(-8 - legKicking, 18);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(5, 5);
+                ctx.lineTo(8 + legKicking, 18);
+                ctx.stroke();
+            } else if (this.state === 'LAND') {
+                // Splayed legs (butt bump)
+                ctx.beginPath();
+                ctx.moveTo(-5, 5);
+                ctx.lineTo(-12, 12);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(5, 5);
+                ctx.lineTo(12, 12);
+                ctx.stroke();
+            } else {
+                // Default falling/standing
+                ctx.beginPath();
+                ctx.moveTo(-5, 5);
+                ctx.lineTo(-5, 15);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(5, 5);
+                ctx.lineTo(5, 15);
+                ctx.stroke();
+            }
 
-        draw(ctx) {
-            ctx.save();
-            ctx.globalAlpha = this.life;
+            // Draw Body
             ctx.fillStyle = this.color;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             ctx.fill();
+
+            // Draw Eyes (Direction)
+            ctx.fillStyle = '#fff';
+            const eyeOffsetX = this.vx > 0 ? 3 : -3;
+
+            if (this.state === 'DRAGGED' || this.state === 'FALL') {
+                // Big surprised eyes
+                ctx.beginPath();
+                ctx.arc(-4, -2, 4, 0, Math.PI * 2);
+                ctx.arc(4, -2, 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (this.state === 'LAND') {
+                // X X eyes (dizzy/pain)
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                // Left X
+                ctx.beginPath(); ctx.moveTo(-6, -4); ctx.lineTo(-2, 0); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-2, -4); ctx.lineTo(-6, 0); ctx.stroke();
+                // Right X
+                ctx.beginPath(); ctx.moveTo(2, -4); ctx.lineTo(6, 0); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(6, -4); ctx.lineTo(2, 0); ctx.stroke();
+            } else {
+                // Regular walking eyes
+                ctx.beginPath();
+                ctx.arc(-4 + eyeOffsetX, -2, 2, 0, Math.PI * 2);
+                ctx.arc(4 + eyeOffsetX, -2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
             ctx.restore();
         }
     }
 
-    // Create ripples on mouse move
+    // Initialize Agents
+    for (let i = 0; i < agentCount; i++) {
+        agents.push(new Agent());
+    }
+
+    // Mouse Listeners
     window.addEventListener('mousemove', (e) => {
         mouse.x = e.clientX;
         mouse.y = e.clientY;
-
-        // Create ripple only if mouse moved enough distance
-        const dx = mouse.x - lastMouse.x;
-        const dy = mouse.y - lastMouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > 5) {
-            ripples.push(new Ripple(mouse.x, mouse.y));
-            lastMouse.x = mouse.x;
-            lastMouse.y = mouse.y;
-        }
     });
 
-    // Create splash on click
     window.addEventListener('mousedown', (e) => {
-        const splashCount = 15;
-        for (let i = 0; i < splashCount; i++) {
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            particles.push(new Particle(e.clientX, e.clientY, color));
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+
+        // Check collision with agents
+        for (let agent of agents) {
+            const dx = mouse.x - agent.x;
+            const dy = mouse.y - agent.y;
+            // Hitbox slightly larger for easier grabbing
+            if (Math.sqrt(dx * dx + dy * dy) < agent.radius * 2) {
+                isDragging = true;
+                draggedAgent = agent;
+                agent.state = 'DRAGGED';
+                break;
+            }
         }
     });
 
-    // PROFILE EXPLOSION EFFECT
-    const profileImage = document.querySelector('.hero-image-wrapper');
-    if (profileImage) {
-        profileImage.style.cursor = 'pointer'; // Make it look clickable
-        profileImage.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent default splash, run super splash instead (or both)
-
-            // 1. Trigger Screen Shake
-            document.body.classList.add('shake-active');
-            setTimeout(() => {
-                document.body.classList.remove('shake-active');
-            }, 500);
-
-            // 2. Trigger Massive Explosion (200 particles)
-            const rect = profileImage.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            for (let i = 0; i < 200; i++) {
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const p = new Particle(centerX, centerY, color);
-
-                // Boost velocity for explosion
-                p.speedX *= 3;
-                p.speedY *= 3;
-                p.size *= 1.5; // Bigger particles
-
-                particles.push(p);
-            }
-        });
-    }
+    window.addEventListener('mouseup', () => {
+        if (isDragging && draggedAgent) {
+            draggedAgent.state = 'FALL';
+            // Carry over velocity from drag
+            // (Calculated in update loop)
+            draggedAgent = null;
+            isDragging = false;
+        }
+    });
 
     // Animation Loop
     function animate() {
         ctx.clearRect(0, 0, width, height);
 
-        // Update and draw ripples
-        for (let i = 0; i < ripples.length; i++) {
-            ripples[i].update();
-            ripples[i].draw(ctx);
-
-            if (ripples[i].alpha <= 0) {
-                ripples.splice(i, 1);
-                i--;
-            }
+        // Draw Agents
+        for (let agent of agents) {
+            agent.update();
+            agent.draw(ctx);
         }
 
-        // Update and draw particles
-        for (let i = 0; i < particles.length; i++) {
-            particles[i].update();
-            particles[i].draw(ctx);
-
-            if (particles[i].life <= 0) {
-                particles.splice(i, 1);
-                i--;
+        // Pointer Update (Grab hand)
+        if (isDragging) {
+            canvas.style.cursor = 'grabbing';
+            canvas.style.pointerEvents = 'auto'; // Keep capturing events while dragging
+        } else {
+            // Check hover
+            let hovering = false;
+            for (let agent of agents) {
+                const dx = mouse.x - agent.x;
+                const dy = mouse.y - agent.y;
+                if (Math.sqrt(dx * dx + dy * dy) < agent.radius * 2) {
+                    hovering = true;
+                    break;
+                }
             }
+            canvas.style.cursor = hovering ? 'grab' : 'default';
+            // Crucial: Create a "hole" in the canvas for clicks to pass through if not hovering an agent
+            canvas.style.pointerEvents = hovering ? 'auto' : 'none';
         }
 
         requestAnimationFrame(animate);
