@@ -780,10 +780,14 @@ img {
 
 .pub-thumbnail {
     flex-shrink: 0;
-    width: 200px;
-    height: 150px;
+    width: 280px;
+    height: 200px;
     border-radius: var(--border-radius-sm);
     overflow: hidden;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .pub-thumbnail-placeholder {
@@ -798,10 +802,12 @@ img {
     transition: background-color 0.3s ease;
 }
 
-.pub-thumbnail img {
+.pub-thumbnail img,
+.pub-thumbnail-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    border-radius: var(--border-radius-sm);
 }
 
 .pub-content {
