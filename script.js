@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmoothScroll();
     initActiveNavLinks();
     initInteractiveCanvas();
+    initIntroAnimation();
 });
 
 /* ============================================
@@ -71,7 +72,7 @@ function initInteractiveCanvas() {
             this.radius = 15; this.maxRadius = 50;
             this.speed = 1; this.alpha = 1;
         }
-        update() { this.radius += this.speed; this.alpha -= 0.02; }
+        update() { this.radius += this.speed; this.alpha -= 0.05; }
         draw(ctx) {
             ctx.save();
             ctx.globalAlpha = this.alpha * 0.4;
@@ -835,3 +836,67 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+/* ============================================
+   INTRO TYPING ANIMATION
+   ============================================ */
+function initIntroAnimation() {
+    const greetingEl = document.querySelector('.greeting');
+    const nameEl = document.querySelector('.name');
+    // Select elements to fade: subtitle, description, cta, scroll, AND the profile image container
+    const elementsToFade = document.querySelectorAll('.hero-subtitle, .hero-description, .hero-cta, .hero-scroll, .hero-image-container');
+
+    // Initial state setup
+    if (greetingEl) {
+        greetingEl.dataset.text = greetingEl.textContent;
+        greetingEl.textContent = '';
+    }
+    if (nameEl) {
+        nameEl.dataset.text = nameEl.textContent;
+        nameEl.textContent = '';
+    }
+
+    // Hide fade elements initially (set here to ensure JS control, though CSS is safer)
+    elementsToFade.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+    });
+
+    // Start typing
+    // Delay slightly to ensure canvas is ready/viewable
+    setTimeout(() => {
+        if (greetingEl) typeText(greetingEl, greetingEl.dataset.text, 50, () => {
+            // After greeting, type name
+            if (nameEl) typeText(nameEl, nameEl.dataset.text, 50, () => {
+                // After name, fade in rest
+                elementsToFade.forEach((el, index) => {
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, index * 200);
+                });
+            });
+        });
+    }, 500);
+}
+
+function typeText(element, text, speed, callback) {
+    let i = 0;
+    element.style.opacity = 1; // Ensure container is visible
+
+    // Cursor effect
+    element.style.borderRight = '2px solid var(--accent-primary)';
+
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        } else {
+            element.style.borderRight = 'none'; // Remove cursor
+            if (callback) callback();
+        }
+    }
+    type();
+}
