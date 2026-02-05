@@ -68,7 +68,7 @@ function initInteractiveCanvas() {
     class Ripple {
         constructor(x, y) {
             this.x = x; this.y = y;
-            this.radius = 0; this.maxRadius = 50;
+            this.radius = 15; this.maxRadius = 50;
             this.speed = 1; this.alpha = 1;
         }
         update() { this.radius += this.speed; this.alpha -= 0.02; }
