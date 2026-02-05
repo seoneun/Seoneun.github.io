@@ -75,7 +75,7 @@ function initInteractiveCanvas() {
         update() { this.radius += this.speed; this.alpha -= 0.05; }
         draw(ctx) {
             ctx.save();
-            ctx.globalAlpha = this.alpha * 0.4;
+            ctx.globalAlpha = this.alpha * 0.15;
             ctx.beginPath();
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
             ctx.lineWidth = 2;
@@ -843,8 +843,8 @@ document.head.appendChild(style);
 function initIntroAnimation() {
     const greetingEl = document.querySelector('.greeting');
     const nameEl = document.querySelector('.name');
-    // Select elements to fade: subtitle, description, cta, scroll, AND the profile image container
-    const elementsToFade = document.querySelectorAll('.hero-subtitle, .hero-description, .hero-cta, .hero-scroll, .hero-image-container');
+    // Select elements to fade: navbar, canvas, subtitle, description, cta, scroll, AND the profile image container
+    const elementsToFade = document.querySelectorAll('.navbar, #interactive-canvas, .hero-subtitle, .hero-description, .hero-cta, .hero-scroll, .hero-image-container');
 
     // Initial state setup
     if (greetingEl) {

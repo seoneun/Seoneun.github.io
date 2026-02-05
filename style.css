@@ -1432,6 +1432,26 @@ img {
     transition-delay: 0.2s;
 }
 
-.timeline-item:nth-child(3) {
-    transition-delay: 0.3s;
+
+/* ============================================
+   INTRO ANIMATION STATE
+   ============================================ */
+/* Hide elements initially to prevent Flash of Unstyled Content (FOUC) */
+.navbar,
+#interactive-canvas,
+.hero-subtitle,
+.hero-description,
+.hero-cta,
+.hero-scroll,
+.hero-image-container {
+    opacity: 0;
+    /* Ensure transitions are set so JS can fade them in */
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+/* Ensure greeting/name are visible for typing (but text content is cleared by JS immediately, 
+   CSS opacity 1 ensures the container is there) */
+.hero-title .greeting,
+.hero-title .name {
+    opacity: 1;
 }
