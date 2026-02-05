@@ -72,10 +72,10 @@ function initInteractiveCanvas() {
             this.radius = 15; this.maxRadius = 50;
             this.speed = 1; this.alpha = 1;
         }
-        update() { this.radius += this.speed; this.alpha -= 0.05; }
+        update() { this.radius += this.speed; this.alpha -= 0.03; }
         draw(ctx) {
             ctx.save();
-            ctx.globalAlpha = this.alpha * 0.15;
+            ctx.globalAlpha = Math.max(0, this.alpha * 0.05);
             ctx.beginPath();
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
             ctx.lineWidth = 2;
