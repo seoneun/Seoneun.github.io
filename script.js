@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavbar();
     initMobileMenu();
     initScrollReveal();
+    initDynamicStats(); // Calculate stats before animation
     initCounterAnimation();
     initSmoothScroll();
     initActiveNavLinks();
@@ -798,6 +799,27 @@ function typeWriter(element, text, speed = 100) {
     }
 
     type();
+}
+
+/* ============================================
+   DYNAMIC STATS COUNTING
+   ============================================ */
+function initDynamicStats() {
+    // Count Publications
+    const pubCount = document.querySelectorAll('#publications .publication-card').length;
+    const pubStat = document.getElementById('stat-publications');
+    if (pubStat) pubStat.setAttribute('data-count', pubCount);
+
+    // Count Awards
+    // Note: Awards section uses timeline-item. We should only count items within #awards
+    const awardCount = document.querySelectorAll('#awards .timeline-item').length;
+    const awardStat = document.getElementById('stat-awards');
+    if (awardStat) awardStat.setAttribute('data-count', awardCount);
+
+    // Count Projects
+    const projectCount = document.querySelectorAll('#projects .project-card').length;
+    const projectStat = document.getElementById('stat-projects');
+    if (projectStat) projectStat.setAttribute('data-count', projectCount);
 }
 
 /* ============================================
