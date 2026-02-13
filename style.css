@@ -1143,6 +1143,102 @@ img {
 }
 
 /* ============================================
+   PERSONAL SEMINARS SECTION
+   ============================================ */
+.seminars {
+    background: var(--bg-secondary);
+}
+
+.seminars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.seminar-card {
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.seminar-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent-primary);
+}
+
+.seminar-thumbnail {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-tertiary);
+}
+
+.seminar-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.seminar-card:hover .seminar-thumb-img {
+    transform: scale(1.05);
+}
+
+.play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.seminar-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.play-overlay i {
+    font-size: 3.5rem;
+    color: white;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+    transition: transform 0.3s ease;
+}
+
+.seminar-card:hover .play-overlay i {
+    transform: scale(1.15);
+}
+
+.seminar-content {
+    padding: 20px 24px;
+}
+
+.seminar-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.seminar-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.seminar-links .pub-link i {
+    color: #ff0000;
+}
+
+/* ============================================
    CONTACT SECTION
    ============================================ */
 .contact {
@@ -1347,9 +1443,14 @@ img {
         height: 180px;
     }
 
-    /* Projects */
     .projects-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Seminars */
+    .seminars-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 
     /* Timeline */
@@ -1434,6 +1535,11 @@ img {
     .timeline-item::before {
         display: none;
         /* Remove connector line to save space */
+    }
+
+    /* Seminars */
+    .seminars-grid {
+        grid-template-columns: 1fr;
     }
 }
 
